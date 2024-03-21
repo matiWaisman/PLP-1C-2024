@@ -40,12 +40,12 @@ aEntero (Right b)
 -- Ejercicio 4
 
 limpiar :: String -> String -> String -- Con la lamda function recorre los caracteres de palabra, y si encuentra que el caracter pertenece a filtro no lo agrega a palabra. 
-limpiar filtro palabra = filter(\x -> not (elem x filtro)) palabra 
+limpiar filtro palabra = filter (\x -> not (elem x filtro)) palabra
 
 difPromedio :: [Float] -> [Float]
 difPromedio l = map (\x -> x - promedio) l
     where promedio = sumarElementos l / fromIntegral (length l)
- 
+
 sumarElementos :: [Float] -> Float
 sumarElementos [] = 0
 sumarElementos [x] = x
@@ -67,21 +67,27 @@ vacioAB _ = False
 
 negacionAB :: AB Bool -> AB Bool
 negacionAB Nil = Nil
-negacionAB (Bin aIzq valor aDerecha) = Bin (negacionAB aIzq) (not valor) (negacionAB aDerecha) 
+negacionAB (Bin aIzq valor aDerecha) = Bin (negacionAB aIzq) (not valor) (negacionAB aDerecha)
 
 productoAB :: AB Int -> Int
 productoAB Nil = 1
 productoAB (Bin aIzq valor aDerecha) = productoAB aIzq * valor * productoAB aDerecha
 
+-- Extra practica Merge Sort
+
+mergeSort :: [Int] -> [Int]
+mergeSort [x] = [x]
+mergeSort l = merge (mergeSort primeraLista) (mergeSort segundaLista)
+    where primeraLista = take (length l `div` 2) l
+          segundaLista = drop (length l `div` 2) l
+
+merge :: [Int] -> [Int] -> [Int]
+merge l1 [] = l1
+merge [] l2 = l2
+merge (l1s : l1) (l2s : l2)
+    | l1s < l2s = l1s : merge l1 (l2s : l2)
+    | otherwise = l2s : merge (l1s : l1)  l2
 
 
-main :: IO ()
-main =  do
-    let arbolVacio = Nil
-    let arbolUnNodo = Bin Nil 5 Nil
-    let arbolCompleto = Bin (Bin Nil 2 Nil) 3 (Bin Nil 4 Nil)
-    print(productoAB arbolVacio)
-    print(productoAB arbolUnNodo)
-    print(productoAB arbolCompleto)
 
-    
+
