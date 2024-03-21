@@ -38,23 +38,50 @@ aEntero (Right b)
 
 
 -- Ejercicio 4
+
+limpiar :: String -> String -> String -- Con la lamda function recorre los caracteres de palabra, y si encuentra que el caracter pertenece a filtro no lo agrega a palabra. 
+limpiar filtro palabra = filter(\x -> not (elem x filtro)) palabra 
+
+difPromedio :: [Float] -> [Float]
+difPromedio l = map (\x -> x - promedio) l
+    where promedio = sumarElementos l / fromIntegral (length l)
+ 
+sumarElementos :: [Float] -> Float
+sumarElementos [] = 0
+sumarElementos [x] = x
+sumarElementos (x:xs) = sumarElementos xs + x
+
+
 todosIguales :: [Int] -> Bool
 todosIguales l
     | any (\x -> x /= head l) l = False
     | otherwise = True
 
+-- Ejercicio 5
 
+data AB a = Nil | Bin (AB a) a (AB a)
 
+vacioAB :: AB a -> Bool
+vacioAB Nil = True
+vacioAB _ = False
 
+negacionAB :: AB Bool -> AB Bool
+negacionAB Nil = Nil
+negacionAB (Bin aIzq valor aDerecha) = Bin (negacionAB aIzq) (not valor) (negacionAB aDerecha) 
+
+productoAB :: AB Int -> Int
+productoAB Nil = 1
+productoAB (Bin aIzq valor aDerecha) = productoAB aIzq * valor * productoAB aDerecha
 
 
 
 main :: IO ()
 main =  do
-    print (todosIguales [])
-    print (todosIguales [1,2])
-    print (todosIguales [1,1])
-    print (todosIguales [1,1,1,3])
-    print (todosIguales [5,5,5,5])
-    print (todosIguales [5,4,4,5])
+    let arbolVacio = Nil
+    let arbolUnNodo = Bin Nil 5 Nil
+    let arbolCompleto = Bin (Bin Nil 2 Nil) 3 (Bin Nil 4 Nil)
+    print(productoAB arbolVacio)
+    print(productoAB arbolUnNodo)
+    print(productoAB arbolCompleto)
 
+    
