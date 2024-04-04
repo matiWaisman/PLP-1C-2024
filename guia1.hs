@@ -8,6 +8,7 @@
 {-# HLINT ignore "Use map" #-}
 {-# HLINT ignore "Avoid lambda using `infix`" #-}
 {-# HLINT ignore "Avoid lambda" #-}
+{-# HLINT ignore "Use list comprehension" #-}
 
 max2Curry :: Float -> (Float -> Float)
 max2Curry x = \y -> if x > y then x else y
@@ -140,15 +141,21 @@ generateFrom stop next xs | stop xs = init xs
                         | otherwise = generateFrom stop next (xs ++ [next xs])
 
 
--- No anda
 generateBase::Eq a => ([a] -> Bool) -> a -> (a -> a) -> [a]
-generateBase stop baseCase f = generate (\ls -> last ls == baseCase && length ls > 1) (\ls -> if null ls then baseCase else f (last ls))
+generateBase stop baseCase f = generate stop (\ls -> if null ls then baseCase else f (last ls))
 
 factorial :: Int -> Int
 factorial n = foldr (\x acc-> x * acc) 1 [1..n]
 
 factoriales::Int -> [Int]
 factoriales n = generate (\ls -> not (null ls) && (last ls > factorial n)) (\ls -> if null ls then 1 else last ls * (length ls + 1))
+
+iterateN :: Eq a => Int -> (a -> a) -> a -> [a]
+iterateN n f baseCase = generateBase (\l -> length l > n) baseCase f
+
+-- Le cambie todos los tipos porque si no como hago para acceder al ultimo elemento de la lista? Para hacer ([a] -> Bool) y ([a] -> a), medio que de eso ya se encarga la funcion iterate y takewhile
+generateFrom2:: (a -> Bool) -> (a -> a) -> a -> [a]
+generateFrom2 stop next baseCase = takeWhile stop (iterate next baseCase)
 
 -- Ejercicio 11
 
@@ -158,7 +165,7 @@ foldNat f x 1 = x
 foldNat f x n = f x (foldNat f x (n - 1))
 
 potencia :: Integer -> Integer -> Integer
-potencia base exponente = foldNat (*) base exponente 
+potencia base exponente = foldNat (*) base exponente
 
 -- Ejercicio 12
 
@@ -167,6 +174,152 @@ data Polinomio a = X
                 | Suma (Polinomio a) (Polinomio a)
                 | Prod (Polinomio a) (Polinomio a)
 
+-- Ejercicio 13
+
+data AB a = Nil | Bin (AB a) a (AB a)
+
+foldAb :: b -> (b -> a -> b -> b) -> AB a -> b
+foldAb acc f Nil = acc
+foldAb acc f (Bin i v d) = f (foldAb acc f i) v (foldAb acc f d)
+
+-- recAb
+
+esNil :: AB a -> Bool
+esNil Nil = True
+esNil _ = False
+
+altura :: AB a -> Int
+altura = foldAb 0 (\i v d -> 1 + max i d)
+
+cantNodos :: AB a -> Int
+cantNodos = foldAb 0 (\i v d -> 1 + i + d)
+
+-- Idea: Armar una funcion que compare entre 3 y devuelva el mejor, aparte tener en cuenta los casos en los que los hijos son Nil, Todo a la espera de una sol mas elegante
+--mejorSegunAb :: (a -> a -> Bool) -> AB a -> a
+--mejorSegunAb comp = foldAb(\i v d -> )
+
+-- Conviene usar recr porque si yo ya se que es falso para que seguir Todo
+--esABB :: Ord a => AB a -> Bool
+
+
+-- Ejercicio 14
+
+-- Error raro, toma a i y d como enteros en vez de Abs
+--ramas :: AB a -> Int
+--ramas = foldAb 0 (\i v d -> if esNil i && esNil d then 1 else 0)
+
+--cantHojas :: AB a -> Int
+--cantHojas = foldAb 0 (\i v d -> if esNil i && esNil d then 1 else 0)
+
+espejo :: AB a -> AB a
+espejo = foldAb Nil (\i v d -> Bin d v i)
+
+-- Preguntar si esta bien asi o hace falta hacer doble fold
+mismaEstructura :: AB a -> AB b -> Bool
+mismaEstructura Nil Nil = True
+mismaEstructura (Bin ia va da) (Bin ib vb db)
+    | cantNodos (Bin ia va da) /= cantNodos (Bin ib vb db)  = False
+    | otherwise = mismaEstructura ia ib  && mismaEstructura da db
+
+
+
+
+-- Ejercicio 15
+
+data AIH a = Hoja a | Bin2 (AIH a) (AIH a)
+
+-- Preguntar como hago para acceder a los resultados de aplicar la funcion a la izq y a la derecha y como los combino
+--foldAih :: b -> (a -> b) -> AIH a -> b
+--foldAih acc f (Hoja x) = f x
+--foldAih acc f (Bin2 izq derecha) = foldAih acc f izq + foldAih acc f derecha
+
+
+-- Ejercicio 16
+
+data RoseTree a = Rose a [RoseTree a]
+
+-- A es el valor del nodo actual, lista de b el valor de aplicar la funcion sobre sus hijos
+foldRose :: (a -> [b] -> b) -> RoseTree a -> b
+foldRose f (Rose x hijos) = f x (map (foldRose f) hijos)
+
+
+-- Como hago para determinar la ultima hoja? Porque hablar sobre hijos es hablar sobre el resultado de aplicar la funcion a hijos, y eso no me sirve
+--hojas :: RoseTree a -> [a]
+--hojas = foldRose (\actual hijos -> ) 
+
+
+--distancias :: RoseTree a -> Int
+
+
+alturaRt :: RoseTree a -> Int
+alturaRt = foldRose(\actual hijos -> 1 + maximum (1 : hijos))
+
+arbolAltura5 :: AB Int
+arbolAltura5 =
+    Bin
+        (Bin
+            (Bin
+                (Bin Nil 1 Nil)
+                2
+                (Bin Nil 3 Nil))
+            4
+            (Bin
+                (Bin Nil 5 Nil)
+                6
+                (Bin Nil 7 Nil)))
+        8
+        (Bin
+            (Bin Nil 9 Nil)
+            10
+            (Bin
+                (Bin Nil 11 Nil)
+                12
+                (Bin
+                    Nil
+                    13
+                    (Bin Nil 14 Nil))))
+
+arbol1 :: AB Int
+arbol1 =
+    Bin
+        (Bin (Bin Nil 0 Nil) 1 Nil)
+        2
+        (Bin Nil 3 Nil)
+
+arbol2 :: AB Char
+arbol2 =
+    Bin
+        (Bin Nil 'a' Nil)
+        'b'
+        (Bin Nil 'c' (Bin Nil 'd' Nil))
+
+
+roseTreeEjemplo :: RoseTree Int
+roseTreeEjemplo =
+    Rose 1 [
+        Rose 2 [
+            Rose 3 [],
+            Rose 4 []
+        ],
+        Rose 5 [
+            Rose 6 [],
+            Rose 7 []
+        ],
+        Rose 8 [
+            Rose 9 [],
+            Rose 10 []
+        ]
+    ]
+
 main :: IO ()
 main = do
-    print (potencia 2 3)
+    print (alturaRt roseTreeEjemplo)
+
+
+-- Todo: 
+--  4 I, IV
+--  9 II
+--  12
+--  14 I recr, III, IV
+--  15 A, B
+--  16 I, II
