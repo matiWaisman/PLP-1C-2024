@@ -9,6 +9,8 @@
 {-# HLINT ignore "Avoid lambda using `infix`" #-}
 {-# HLINT ignore "Avoid lambda" #-}
 {-# HLINT ignore "Use list comprehension" #-}
+{-# HLINT ignore "Used otherwise as a pattern" #-}
+{-# HLINT ignore "Use record patterns" #-}
 
 max2Curry :: Float -> (Float -> Float)
 max2Curry x = \y -> if x > y then x else y
@@ -179,13 +181,13 @@ data Polinomio a = X
 data AB a = Nil | Bin (AB a) a (AB a)
 
 foldAb :: b -> (b -> a -> b -> b) -> AB a -> b
-foldAb acc f Nil = acc
-foldAb acc f (Bin i v d) = f (foldAb acc f i) v (foldAb acc f d)
+foldAb baseCase f Nil = baseCase
+foldAb baseCase f (Bin i v d) = f (foldAb baseCase f i) v (foldAb baseCase f d)
 
 -- Abs a para devolver el rec, tenes rama izquierda y rama derecha
 recAb :: b -> (b -> a -> b -> AB a -> AB a -> b) -> AB a -> b
 recAb baseCase f Nil = baseCase
-recAb baseCase f (Bin i v d) = f (recAb baseCase f i) v (recAb baseCase f d) i d 
+recAb baseCase f (Bin i v d) = f (recAb baseCase f i) v (recAb baseCase f d) i d
 
 esNil :: AB a -> Bool
 esNil Nil = True
@@ -197,23 +199,56 @@ altura = foldAb 0 (\i v d -> 1 + max i d)
 cantNodos :: AB a -> Int
 cantNodos = foldAb 0 (\i v d -> 1 + i + d)
 
--- Idea: Armar una funcion que compare entre 3 y devuelva el mejor, aparte tener en cuenta los casos en los que los hijos son Nil, Todo a la espera de una sol mas elegante
---mejorSegunAb :: (a -> a -> Bool) -> AB a -> a
---mejorSegunAb comp = foldAb(\i v d -> )
+-- Conviene usar recr para poder acceder a la "cola del arbol" osea los hijos de abajo
+esABB :: Ord a => AB a -> Bool
+esABB = recAb True evaluar
+    where
+        evaluar recI v recD arbolIzquierdo arbolDerecho =
+            case (esNil arbolIzquierdo, esNil arbolDerecho) of
+                (True, True) -> True
+                (False, True) -> recI && v > valorNodo arbolIzquierdo
+                (True, False) -> recD && v < valorNodo arbolDerecho
+                (False, False) -> recI && recD && v > valorNodo arbolIzquierdo && v < valorNodo arbolDerecho
+        valorNodo (Bin _ v _) = v
 
--- Conviene usar recr porque si yo ya se que es falso para que seguir Todo
---esABB :: Ord a => AB a -> Bool
+-- Asumo que tiene al menos un elemento
+-- Conviene usar recr para poder acceder a la "cola del arbol" osea los hijos de abajo
+mejorSegunAb :: (a -> a -> Bool) -> AB a -> a
+mejorSegunAb f arbol = recAb (valorNodo arbol) (evaluarBase f) arbol
+    where
+        valorNodo (Bin _ v _) = v
+        evaluarBase f recI v recD arbolIzquierdo arbolDerecho =
+            case (esNil arbolIzquierdo, esNil arbolDerecho) of
+                (True, True) -> v
+                (False, True) -> if f v recI then v else recI
+                (True, False) -> if f v recD then v else recD
+                (False, False) -> evaluarMejor f recI v recD
+        evaluarMejor f recI v recD =
+            case (f recI v && f recI recD, f v recI && f v recD, f recD v && f recD recI) of
+                (True, False, False) -> recI
+                (False, True, False) -> v
+                (False, False, True) -> recD
+
 
 
 -- Ejercicio 14
-
--- Error raro, toma a i y d como enteros en vez de Abs devolver la lista en vez de la cantidad
---ramas :: AB a -> Int
---ramas = foldAb 0 (\i v d -> if esNil i && esNil d then 1 else 0)
+-- Caso base: No tiene hijos. Idea: Agrrar elementos hasta llegar a la raiz que ahi es porque termino mi rama. Problema: No se de que lado vengo para ver si tengo que devolver el arbol izquierdo o el arbol derecho.
+--ramas :: AB a -> [[a]]
+--ramas (Bin i v d) = recAb v (\recI vA recD aIzq aDer -> if not (tieneHijos aIzq) && not (tieneHijos aDer)  then
+--                            [vA] else recI : [recD])
+--                            (Bin i v d)
+--    where
+--        tieneHijos Nil = False
+--        tieneHijos (Bin _ _ _) = True
 
 -- i y d son los resultados de aplicar la recursion
 cantHojas :: AB a -> Int
-cantHojas = foldAb 0 (\i v d -> if esNil i && esNil d then 1 else 0)
+cantHojas = recAb 0 (\recI v recD aIzq aDer -> if not (tieneHijos aIzq) && not (tieneHijos aDer)
+                    then 1 else recI + recD)
+    where
+        tieneHijos Nil = False
+        tieneHijos (Bin _ _ _) = True
+
 
 espejo :: AB a -> AB a
 espejo = foldAb Nil (\i v d -> Bin d v i)
@@ -232,11 +267,15 @@ mismaEstructura (Bin ia va da) (Bin ib vb db)
 
 data AIH a = Hoja a | Bin2 (AIH a) (AIH a)
 
--- Preguntar como hago para acceder a los resultados de aplicar la funcion a la izq y a la derecha y como los combino
---foldAih :: b -> (a -> b) -> AIH a -> b
---foldAih acc f (Hoja x) = f x
---foldAih acc f (Bin2 izq derecha) = foldAih acc f izq + foldAih acc f derecha
+foldAih :: (a -> b) -> (b -> b -> b) -> AIH a -> b
+foldAih fHoja fRecu  (Hoja a) = fHoja a
+foldAih fHoja fRecu (Bin2 binI binD) = fRecu (foldAih fHoja fRecu binI) (foldAih fHoja fRecu binD)
 
+alturaAih :: AIH a -> Integer
+alturaAih = foldAih (const 0) (\recI recD -> 1 + max recI recD)
+
+sizeAih :: AIH a -> Integer
+sizeAih = foldAih (const 1) (\recI recD -> recI + recD)
 
 -- Ejercicio 16
 
@@ -256,7 +295,7 @@ foldRose f (Rose x hijos) = f x (map (foldRose f) hijos)
 
 
 alturaRt :: RoseTree a -> Int
-alturaRt = foldRose(\actual hijos -> 1 + maximum (1 : hijos))
+alturaRt = foldRose (\actual hijos -> 1 + maximum (1 : hijos))
 
 arbolAltura5 :: AB Int
 arbolAltura5 =
@@ -298,6 +337,73 @@ arbol2 =
         (Bin Nil 'c' (Bin Nil 'd' Nil))
 
 
+arbolBinario :: AB Int
+arbolBinario =
+    Bin
+        (Bin
+            (Bin Nil 1 Nil)
+            2
+            (Bin Nil 3 Nil)
+        )
+        4
+        (Bin
+            (Bin Nil 5 Nil)
+            6
+            (Bin Nil 7 Nil)
+        )
+
+arbolNoBinario :: AB Int
+arbolNoBinario =
+    Bin
+        (Bin
+            Nil
+            3
+            (Bin Nil 2 Nil)
+        )
+        5
+        (Bin
+            (Bin Nil 6 Nil)
+            4
+            Nil
+        )
+
+aih :: AIH Int
+aih =
+    Bin2
+        (Bin2
+            (Hoja 1)
+            (Bin2
+                (Hoja 3)
+                (Hoja 4)
+            )
+        )
+        (Hoja 2)
+
+
+aih2 :: AIH Int
+aih2 =
+    Bin2
+        (Bin2
+            (Bin2
+                (Hoja 1)
+                (Bin2
+                    (Hoja 4)
+                    (Bin2
+                        (Hoja 7)
+                        (Hoja 8)
+                    )
+                )
+            )
+            (Bin2
+                (Hoja 2)
+                (Hoja 5)
+            )
+        )
+        (Bin2
+            (Hoja 3)
+            (Hoja 6)
+        )
+
 roseTreeEjemplo :: RoseTree Int
 roseTreeEjemplo =
     Rose 1 [
@@ -317,13 +423,11 @@ roseTreeEjemplo =
 
 main :: IO ()
 main = do
-    print (alturaRt roseTreeEjemplo)
+    print (alturaAih aih2)
 
 
 -- Todo: 
 --  4 I, IV
 --  9 II
 --  12
---  14, III, IV
---  15 A, B
 --  16 I, II
