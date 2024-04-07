@@ -176,6 +176,17 @@ data Polinomio a = X
                 | Suma (Polinomio a) (Polinomio a)
                 | Prod (Polinomio a) (Polinomio a)
 
+foldPoli :: b -> (a -> b) -> (b -> b -> b) -> (b -> b -> b) -> Polinomio a -> b
+foldPoli x fCte fSuma fProd poli = case poli of 
+    X -> x 
+    Cte y -> fCte y
+    Suma p q -> fSuma (rec p) (rec q)
+    Prod p q-> fProd (rec p) (rec q)
+    where rec = foldPoli x fCte fSuma fProd 
+
+evaluar :: Num a => a -> Polinomio a -> a
+evaluar y = foldPoli y id (+) (+)
+
 -- Ejercicio 13
 
 data AB a = Nil | Bin (AB a) a (AB a)
@@ -429,6 +440,5 @@ main = do
 -- Todo: 
 --  4 I, IV
 --  9 II
---  12
 --  14 I
 --  16 I, II
