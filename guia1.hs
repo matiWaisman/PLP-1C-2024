@@ -182,7 +182,10 @@ foldAb :: b -> (b -> a -> b -> b) -> AB a -> b
 foldAb acc f Nil = acc
 foldAb acc f (Bin i v d) = f (foldAb acc f i) v (foldAb acc f d)
 
--- recAb
+-- Abs a para devolver el rec, tenes rama izquierda y rama derecha
+recAb :: b -> (b -> a -> b -> AB a -> AB a -> b) -> AB a -> b
+recAb baseCase f Nil = baseCase
+recAb baseCase f (Bin i v d) = f (recAb baseCase f i) v (recAb baseCase f d) i d 
 
 esNil :: AB a -> Bool
 esNil Nil = True
@@ -204,12 +207,13 @@ cantNodos = foldAb 0 (\i v d -> 1 + i + d)
 
 -- Ejercicio 14
 
--- Error raro, toma a i y d como enteros en vez de Abs
+-- Error raro, toma a i y d como enteros en vez de Abs devolver la lista en vez de la cantidad
 --ramas :: AB a -> Int
 --ramas = foldAb 0 (\i v d -> if esNil i && esNil d then 1 else 0)
 
---cantHojas :: AB a -> Int
---cantHojas = foldAb 0 (\i v d -> if esNil i && esNil d then 1 else 0)
+-- i y d son los resultados de aplicar la recursion
+cantHojas :: AB a -> Int
+cantHojas = foldAb 0 (\i v d -> if esNil i && esNil d then 1 else 0)
 
 espejo :: AB a -> AB a
 espejo = foldAb Nil (\i v d -> Bin d v i)
@@ -320,6 +324,6 @@ main = do
 --  4 I, IV
 --  9 II
 --  12
---  14 I recr, III, IV
+--  14, III, IV
 --  15 A, B
 --  16 I, II
