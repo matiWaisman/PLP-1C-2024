@@ -65,6 +65,15 @@ sumaAltInversa l = foldl (flip (-)) 0 l
 
 --permutaciones :: [a] -> [[a]]
 --permutaciones = 
+-- Generar la lista de posiciones
+-- Hacer funcion que dado un elem y una lista devuelve las permutaciones de la lista con ese elemento, usando map, take y drop.
+
+permutaciones :: [a] -> [[a]]
+permutaciones l = concatMap (\(x) -> permutacionesE x l) l
+
+permutacionesE :: a -> [a] -> [[a]]
+permutacionesE elem lista = map (\n -> take n lista ++ [elem] ++ drop n lista) [0..length lista]
+
 
 partes :: [a] -> [[a]]
 partes = foldl (\acc x -> acc ++ map (\a -> a ++ [x]) acc) [[]]
@@ -73,7 +82,7 @@ prefijos :: [a] -> [[a]]
 prefijos = foldl (\acc x  -> acc ++ [last acc ++ [x]]) [[]]
 
 -- sublistas :: [a] -> [[a]]
-
+-- Lo mismo, hacer map por elemento y agarrar o dropear esos elementos.
 
 
 -- Ejercicio 5
@@ -177,12 +186,12 @@ data Polinomio a = X
                 | Prod (Polinomio a) (Polinomio a)
 
 foldPoli :: b -> (a -> b) -> (b -> b -> b) -> (b -> b -> b) -> Polinomio a -> b
-foldPoli x fCte fSuma fProd poli = case poli of 
-    X -> x 
+foldPoli x fCte fSuma fProd poli = case poli of
+    X -> x
     Cte y -> fCte y
     Suma p q -> fSuma (rec p) (rec q)
     Prod p q-> fProd (rec p) (rec q)
-    where rec = foldPoli x fCte fSuma fProd 
+    where rec = foldPoli x fCte fSuma fProd
 
 evaluar :: Num a => a -> Polinomio a -> a
 evaluar y = foldPoli y id (+) (+)
@@ -243,16 +252,18 @@ mejorSegunAb f arbol = recAb (valorNodo arbol) (evaluarBase f) arbol
 
 
 -- Ejercicio 14
--- Caso base: No tiene hijos. Idea: Agrrar elementos hasta llegar a la raiz que ahi es porque termino mi rama. Problema: No se de que lado vengo para ver si tengo que devolver el arbol izquierdo o el arbol derecho.
---ramas :: AB a -> [[a]]
---ramas (Bin i v d) = recAb v (\recI vA recD aIzq aDer -> if not (tieneHijos aIzq) && not (tieneHijos aDer)  then
---                            [vA] else recI : [recD])
---                            (Bin i v d)
---    where
---        tieneHijos Nil = False
---        tieneHijos (Bin _ _ _) = True
+-- Devuelve las ramas dobles.
+ramas :: AB a -> [[a]]
+ramas = foldAb [[]] combinar
+    where
+        combinar i v d =
+            case(null i, null d) of
+            (True, True) -> [[v]]
+            (False,True) -> map (v:) i
+            (True, False) -> map (v:) d
+            (False, False) -> map (v:) i ++ map (v:) d
 
--- i y d son los resultados de aplicar la recursion
+
 cantHojas :: AB a -> Int
 cantHojas = recAb 0 (\recI v recD aIzq aDer -> if not (tieneHijos aIzq) && not (tieneHijos aDer)
                     then 1 else recI + recD)
@@ -434,7 +445,7 @@ roseTreeEjemplo =
 
 main :: IO ()
 main = do
-    print (alturaAih aih2)
+    print (permutaciones [1,2])
 
 
 -- Todo: 
