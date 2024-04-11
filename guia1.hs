@@ -62,14 +62,8 @@ sumaAltInversa :: Num a => [a] -> a
 sumaAltInversa l = foldl (flip (-)) 0 l
 
 -- Ejercicio 4
-
---permutaciones :: [a] -> [[a]]
---permutaciones = 
--- Generar la lista de posiciones
--- Hacer funcion que dado un elem y una lista devuelve las permutaciones de la lista con ese elemento, usando map, take y drop.
-
 permutaciones :: [a] -> [[a]]
-permutaciones l = concatMap (\(x) -> permutacionesE x l) l
+permutaciones = foldr(\x rs -> concatMap (\r -> permutacionesE x r) rs) [[]]
 
 permutacionesE :: a -> [a] -> [[a]]
 permutacionesE elem lista = map (\n -> take n lista ++ [elem] ++ drop n lista) [0..length lista]
@@ -81,8 +75,10 @@ partes = foldl (\acc x -> acc ++ map (\a -> a ++ [x]) acc) [[]]
 prefijos :: [a] -> [[a]]
 prefijos = foldl (\acc x  -> acc ++ [last acc ++ [x]]) [[]]
 
--- sublistas :: [a] -> [[a]]
--- Lo mismo, hacer map por elemento y agarrar o dropear esos elementos.
+sublistas :: [a] -> [[a]]
+sublistas = recr(\x xs rec -> map (x:) (prefijos xs) ++ rec) [[]]
+
+
 
 
 -- Ejercicio 5
@@ -259,9 +255,7 @@ ramas = foldAb [[]] combinar
         combinar i v d =
             case(null i, null d) of
             (True, True) -> [[v]]
-            (False,True) -> map (v:) i
-            (True, False) -> map (v:) d
-            (False, False) -> map (v:) i ++ map (v:) d
+            (_, _) -> map (v:) i ++ map (v:) d
 
 
 cantHojas :: AB a -> Int
@@ -445,11 +439,10 @@ roseTreeEjemplo =
 
 main :: IO ()
 main = do
-    print (permutaciones [1,2])
+    print (ramas arbol2)
 
 
 -- Todo: 
---  4 I, IV
 --  9 II
 --  14 I
 --  16 I, II
