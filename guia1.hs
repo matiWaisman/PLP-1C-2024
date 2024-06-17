@@ -200,10 +200,10 @@ foldAb :: b -> (b -> a -> b -> b) -> AB a -> b
 foldAb baseCase f Nil = baseCase
 foldAb baseCase f (Bin i v d) = f (foldAb baseCase f i) v (foldAb baseCase f d)
 
--- Abs a para devolver el rec, tenes rama izquierda y rama derecha
-recAb :: b -> (b -> a -> b -> AB a -> AB a -> b) -> AB a -> b
-recAb baseCase f Nil = baseCase
-recAb baseCase f (Bin i v d) = f (recAb baseCase f i) v (recAb baseCase f d) i d
+recAb :: b -> (AB a -> b -> a -> AB a -> b -> b) -> AB a -> b
+recAb cNil fArbol Nil = cNil
+recAb cNil fArbol (Bin i v d) = fArbol i (rec i) v d (rec d)
+    where rec = recAb cNil fArbol
 
 esNil :: AB a -> Bool
 esNil Nil = True
@@ -217,36 +217,19 @@ cantNodos = foldAb 0 (\i v d -> 1 + i + d)
 
 -- Conviene usar recr para poder acceder a la "cola del arbol" osea los hijos de abajo
 esABB :: Ord a => AB a -> Bool
-esABB = recAb True evaluar
+esABB = recAb True (\sI recI v sD recD -> (recI && recD) && evaluar sI v sD)
     where
-        evaluar recI v recD arbolIzquierdo arbolDerecho =
-            case (esNil arbolIzquierdo, esNil arbolDerecho) of
-                (True, True) -> True
-                (False, True) -> recI && v > valorNodo arbolIzquierdo
-                (True, False) -> recD && v < valorNodo arbolDerecho
-                (False, False) -> recI && recD && v > valorNodo arbolIzquierdo && v < valorNodo arbolDerecho
-        valorNodo (Bin _ v _) = v
+        evaluar sI v sD = case (esNil sI, esNil sD) of
+            (True, True) -> True
+            (False, True) -> raiz sI < v
+            (True, False) -> raiz sD > v
+            (False, False) -> raiz sI < v && raiz sD > v
+        raiz (Bin _ v _) = v
 
 -- Asumo que tiene al menos un elemento
--- Conviene usar recr para poder acceder a la "cola del arbol" osea los hijos de abajo
-mejorSegunAb :: (a -> a -> Bool) -> AB a -> a
-mejorSegunAb f arbol = recAb (valorNodo arbol) (evaluarBase f) arbol
-    where
-        valorNodo (Bin _ v _) = v
-        evaluarBase f recI v recD arbolIzquierdo arbolDerecho =
-            case (esNil arbolIzquierdo, esNil arbolDerecho) of
-                (True, True) -> v
-                (False, True) -> if f v recI then v else recI
-                (True, False) -> if f v recD then v else recD
-                (False, False) -> evaluarMejor f recI v recD
-        evaluarMejor f recI v recD =
-            case (f recI v && f recI recD, f v recI && f v recD, f recD v && f recD recI) of
-                (True, False, False) -> recI
-                (False, True, False) -> v
-                (False, False, True) -> recD
-
-
-
+mejorSegunAB :: (a -> a -> Bool) -> AB a -> a
+mejorSegunAB f (Bin i v d) = foldAb v (\recI v recD -> if f recI v && f recD v then v else (if f v recI && f recD recI then recI else recD)) (Bin i v d)
+    
 -- Ejercicio 14
 -- Devuelve las ramas dobles.
 ramas :: AB a -> [[a]]
@@ -437,9 +420,16 @@ roseTreeEjemplo =
         ]
     ]
 
+zip2 :: [a] -> [b] -> [(a,b)]
+zip2 = foldr (\x rec ys -> if null ys then [] else (x, head ys) : rec (tail ys)) (const [])
+
+nub :: Eq a => [a] -> [a]
+nub [] = []
+nub (x:xs) = x : filter (\y -> x /= y) (nub xs)
+
 main :: IO ()
 main = do
-    print (ramas arbol2)
+    print (nub [1,2,2,2,1,3,4,3])
 
 
 -- Todo: 
