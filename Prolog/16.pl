@@ -12,3 +12,6 @@ generarTripla(S, A, B, C) :- desde2(3, S), Sprima is S - 2, between(1, Sprima, A
 % perímetro(?T,?P), que es verdadero cuando T es un triángulo (válido) y P es su perímetro.
 perimetro(tri(A,B,C), P) :- ground(tri(A,B,C)), esTriangulo(tri(A,B,C)), P is A + B + C.
 perimetro(tri(A,B,C), P) :- not(ground(tri(A,B,C))), generarTripla(P, A,B,C), esTriangulo(tri(A,B,C)).
+
+% triángulo(-T), que genera todos los triángulos válidos, sin repetir resultados.
+triangulo(T) :- perimetro(T,_).
