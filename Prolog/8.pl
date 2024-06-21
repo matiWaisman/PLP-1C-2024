@@ -33,7 +33,18 @@ aplanar([],[]).
 aplanar([X|XS], YS) :- not(aplanar(X,_)), aplanar(XS, XSA), append([X], XSA, YS).
 % Si el primer elemento es una lista.
 aplanar([XS|LS], YS) :- aplanar(XS, XSA), aplanar(LS, LSA), append(XSA, LSA, YS).
-% Funciona con ?L, ?N, +LListas, al reves de lo que pide la consigna :/
-reparto(L, N, LListas) :- longitud(LListas, N), aplanar(LListas, L).
 
-% Falta reparto y reparto sin vacias
+prefijo(P, L) :- append(P,_,L).
+
+% reparto(+L, +N, -LListas) que tenga éxito si LListas es una lista de N listas (N ≥ 1) de cualquier longitud - incluso vacías - tales que al concatenarlas se obtiene la lista L.
+reparto(L, 1, [L]).
+reparto(L, N, LListas) :- N =\= 1, append(L1, L2, L), M is N - 1, reparto(L2, M, L3), append([L1], L3, LListas), longitud(LListas, N). 
+
+
+% Funciona con ?L, ?N, +LListas
+reparto2(L, N, LListas) :- longitud(LListas, N), aplanar(LListas, L).
+
+% repartoSinVacías(+L, -LListas) similar al anterior, pero ninguna de las listas de LListas puede ser vacía, y la longitud de LListas puede variar.
+repartoSinVacias([X], [[X]]).
+repartoSinVacias([X|L], [[X|L]]) :- longitud(L, Len), Len > 0.
+repartoSinVacias(L, LListas) :- append(L1, L2, L), L1 \= [], repartoSinVacias(L2, L3), append([L1], L3, LListas).
