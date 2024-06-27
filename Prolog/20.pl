@@ -10,4 +10,4 @@ desde2(X,Y) :- nonvar(Y), X < Y.
 desde2(X,Y) :- var(Y), N is X + 1, desde2(N,Y).
 
 % minimo(?X)
-minimo(X) :- esPar(X), not((esPar(Y), Y < X)).
+minimo(X) :- esPar(X), not((between(0, X, Y), Y < X, esPar(Y))).
