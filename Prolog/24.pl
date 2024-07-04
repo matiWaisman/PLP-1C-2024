@@ -1,6 +1,14 @@
 % arbol(-A) que genere estructuras de árbol binario, dejando los valores de los nodos sin instanciar.
-arbol(nil).
-arbol(bin(AI, _, AD)) :- arbol(AI), arbol(AD).
+arbol(A) :- desde(0, X),  arbolDeN(X, A).  
+
+arbolDeN(0,nil).
+arbolDeN(N,bin(I,_,D)) :- N > 0, N2 is N-1, paresQueSuman(N2,NI,ND), arbolDeN(NI,I), arbolDeN(ND,D).
+
+paresQueSuman(S,X,Y) :- between(0,S,X), Y is S-X.
+
+% desde(+X, -Y).
+desde(X,X).
+desde(X,Y) :- N is X+1, desde(N,Y).
 
 % nodosEn(?A, +L) que es verdadero cuando A es un árbol cuyos nodos pertenecen al conjunto conjunto de átomos L (representado mediante una lista no vacía, sin orden relevante y sin repetidos). 
 nodosEn(nil, _).
