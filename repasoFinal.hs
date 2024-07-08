@@ -17,8 +17,10 @@ zipE (x : xs) (y : ys) = (x, y) : zipE xs ys
 recr f z [] = z
 recr f z (x : xs) = f x xs (recr f z xs)
 
-foldrRec :: (a -> b -> b) -> b -> [a] -> b
-foldrRec f = recr (\x _ rec -> f x rec)
+foldrRecr :: (a -> b -> b) -> b -> [a] -> b
+foldrRecr f = recr (\x _ rec -> f x rec)
+
+recrFoldr :: 
 
 main :: IO ()
 main = do
