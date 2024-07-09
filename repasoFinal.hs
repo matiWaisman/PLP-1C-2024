@@ -47,7 +47,7 @@ foldrFoldl f rec l = foldl g rec (reverse l)
     where g rec e = f e rec
 
 entrelazar :: [a] -> [a] -> [a]
-entrelazar xs ys = foldr (\x rec -> if null ys then x : rec else x : head ys : rec) (ys) xs
+entrelazar = foldr (\x rec ys -> if null ys then x : rec ys else x : head ys : rec (tail ys)) id
 
 main :: IO ()
 main = do
