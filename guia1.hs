@@ -241,12 +241,12 @@ ramas = foldAb [[]] combinar
             (_, _) -> map (v:) i ++ map (v:) d
 
 
-cantHojas :: AB a -> Int
-cantHojas = recAb 0 (\recI v recD aIzq aDer -> if not (tieneHijos aIzq) && not (tieneHijos aDer)
-                    then 1 else recI + recD)
-    where
-        tieneHijos Nil = False
-        tieneHijos (Bin _ _ _) = True
+--cantHojas :: AB a -> Int
+--cantHojas = recAb 0 (\recI v recD aIzq aDer -> if not (tieneHijos aIzq) && not (tieneHijos aDer)
+--                    then 1 else recI + recD)
+--    where
+--        tieneHijos Nil = False
+--        tieneHijos (Bin _ _ _) = True
 
 
 espejo :: AB a -> AB a
@@ -296,140 +296,19 @@ foldRose f (Rose x hijos) = f x (map (foldRose f) hijos)
 alturaRt :: RoseTree a -> Int
 alturaRt = foldRose (\actual hijos -> 1 + maximum (1 : hijos))
 
-arbolAltura5 :: AB Int
-arbolAltura5 =
-    Bin
-        (Bin
-            (Bin
-                (Bin Nil 1 Nil)
-                2
-                (Bin Nil 3 Nil))
-            4
-            (Bin
-                (Bin Nil 5 Nil)
-                6
-                (Bin Nil 7 Nil)))
-        8
-        (Bin
-            (Bin Nil 9 Nil)
-            10
-            (Bin
-                (Bin Nil 11 Nil)
-                12
-                (Bin
-                    Nil
-                    13
-                    (Bin Nil 14 Nil))))
+-- Ejercicio 17
 
-arbol1 :: AB Int
-arbol1 =
-    Bin
-        (Bin (Bin Nil 0 Nil) 1 Nil)
-        2
-        (Bin Nil 3 Nil)
+-- Cuál es el valor de esta expresión?
+-- [ x | x <- [1..3], y <- [x..3], (x + y) `mod' 3 == 0 ]
+-- [1, 3]
 
-arbol2 :: AB Char
-arbol2 =
-    Bin
-        (Bin Nil 'a' Nil)
-        'b'
-        (Bin Nil 'c' (Bin Nil 'd' Nil))
+-- Ejercicio 18 Preguntar con que hacer el generador infinito
+--paresDeNat :: [(Int, Int)]
 
-
-arbolBinario :: AB Int
-arbolBinario =
-    Bin
-        (Bin
-            (Bin Nil 1 Nil)
-            2
-            (Bin Nil 3 Nil)
-        )
-        4
-        (Bin
-            (Bin Nil 5 Nil)
-            6
-            (Bin Nil 7 Nil)
-        )
-
-arbolNoBinario :: AB Int
-arbolNoBinario =
-    Bin
-        (Bin
-            Nil
-            3
-            (Bin Nil 2 Nil)
-        )
-        5
-        (Bin
-            (Bin Nil 6 Nil)
-            4
-            Nil
-        )
-
-aih :: AIH Int
-aih =
-    Bin2
-        (Bin2
-            (Hoja 1)
-            (Bin2
-                (Hoja 3)
-                (Hoja 4)
-            )
-        )
-        (Hoja 2)
-
-
-aih2 :: AIH Int
-aih2 =
-    Bin2
-        (Bin2
-            (Bin2
-                (Hoja 1)
-                (Bin2
-                    (Hoja 4)
-                    (Bin2
-                        (Hoja 7)
-                        (Hoja 8)
-                    )
-                )
-            )
-            (Bin2
-                (Hoja 2)
-                (Hoja 5)
-            )
-        )
-        (Bin2
-            (Hoja 3)
-            (Hoja 6)
-        )
-
-roseTreeEjemplo :: RoseTree Int
-roseTreeEjemplo =
-    Rose 1 [
-        Rose 2 [
-            Rose 3 [],
-            Rose 4 []
-        ],
-        Rose 5 [
-            Rose 6 [],
-            Rose 7 []
-        ],
-        Rose 8 [
-            Rose 9 [],
-            Rose 10 []
-        ]
-    ]
-
-zip2 :: [a] -> [b] -> [(a,b)]
-zip2 = foldr (\x rec ys -> if null ys then [] else (x, head ys) : rec (tail ys)) (const [])
-
-nub :: Eq a => [a] -> [a]
-nub [] = []
-nub (x:xs) = x : filter (\y -> x /= y) (nub xs)
 
 main :: IO ()
 main = do
-    print (nub [1,2,2,2,1,3,4,3])
+    print ([ x | x <- [1..3], y <- [x..3], (x + y) `mod` 3 == 0 ])
 
 
 -- Todo: 
