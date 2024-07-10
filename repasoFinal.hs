@@ -13,6 +13,9 @@ zipE :: [a] -> [b] -> [(a, b)]
 zipE [] [] = []
 zipE (x : xs) (y : ys) = (x, y) : zipE xs ys
 
+zipFold :: [a] -> [b] -> [(a,b)]
+zipFold = foldr (\x rec ys -> if (not (null ys)) then (x, head ys) : rec (tail ys) else []) (const [])
+
 -- Definir foldr en base a recr
 recr :: (a -> [a] -> b -> b) -> b -> [a] -> b
 recr f z [] = z
@@ -25,30 +28,48 @@ foldrRecr f = recr (\x _ rec -> f x rec)
 recrFoldr :: (a -> [a] -> b -> b) -> b -> [a] -> b
 recrFoldr f z (x : y:  xs) = f x xs (foldr (\_ rec -> f y xs rec) z xs)
 
-recFoldrMalPorqueLoHizoFausto :: (a -> [a] -> b -> b) -> b -> [a] -> b
-recFoldrMalPorqueLoHizoFausto f z xs = foldr (\x rec -> f x xs rec ) z xs
+-- No anda 
+--recrFoldr2 :: (a -> [a] -> b -> b) -> b -> [a] -> b
+--recrFoldr2 f z (x:xs) = f x xs (foldr g (z, []) xs)
+--        where g = (\x -> \(rec, xs) -> f x xs rec)
 
 -- Prueba de que funciona bien 
 trimP :: String -> String
-trimP = recFoldrMalPorqueLoHizoFausto (\ x xs rec -> if x == ' ' then rec else x : xs) []
+trimP = recrFoldr (\ x xs rec -> if x == ' ' then rec else x : xs) []
 
 -- Definir foldl en base a foldr
-foldlFoldr :: (b -> a -> b) -> b -> [a] -> b
-foldlFoldr f rec l = foldr g rec (reverse l)
+foldlConFoldr f rec l = foldr g rec (reverse l)
     where g e rec = f rec e
 
 -- Prueba de que funciona bien 
 bin2dec :: [Int] -> Int
-bin2dec = foldlFoldr (\ ac b -> b + 2 * ac) 0
+bin2dec = foldlConFoldr (\ ac b -> b + 2 * ac) 0
 
 -- Definir foldr en base a foldl
-foldrFoldl :: (a -> b -> b) -> b -> [a] -> b
-foldrFoldl f rec l = foldl g rec (reverse l)
+foldrConFoldl f rec l = foldl g rec (reverse l)
     where g rec e = f e rec
 
 entrelazar :: [a] -> [a] -> [a]
 entrelazar = foldr (\x rec ys -> if null ys then x : rec ys else x : head ys : rec (tail ys)) id
 
+permutaciones :: [a] -> [[a]]
+permutaciones = foldr (\x rec -> concatMap (\rs -> permutacionesConUnElemento x rs) rec) [[]]
+
+permutacionesConUnElemento :: a -> [a] -> [[a]]
+permutacionesConUnElemento e l = foldr (\i rec -> (take i l ++ [e] ++ drop i l) : rec) [] [0.. length l]
+
+partes :: [a] -> [[a]]
+partes = foldl (\rec x -> rec ++ map (\e -> e ++ [x]) rec) [[]]
+
+prefijos :: [a] -> [[a]]
+prefijos = foldl (\rec x -> rec ++ [last rec ++ [x]]) [[]]
+
+sufijos :: [a] -> [[a]]
+sufijos l = map reverse (prefijos (reverse l))
+
+sublistas :: [a] -> [[a]]
+sublistas = recr(\x xs rec -> map (x:) (prefijos xs) ++ rec) [[]]
+
 main :: IO ()
 main = do
-    print (entrelazar [1, 3, 5] [2, 4, 6])
+    print (partes [5,1,2])
