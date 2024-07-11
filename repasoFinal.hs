@@ -26,12 +26,7 @@ foldrRecr f = recr (\x _ rec -> f x rec)
 
 -- Definir recr en base a foldr
 recrFoldr :: (a -> [a] -> b -> b) -> b -> [a] -> b
-recrFoldr f z (x : y:  xs) = f x xs (foldr (\_ rec -> f y xs rec) z xs)
-
--- No anda 
---recrFoldr2 :: (a -> [a] -> b -> b) -> b -> [a] -> b
---recrFoldr2 f z (x:xs) = f x xs (foldr g (z, []) xs)
---        where g = (\x -> \(rec, xs) -> f x xs rec)
+recrFoldr f z (x:xs) = f x xs (foldr (\ e rec l -> f e l (rec (tail l))) (const z) xs xs)
 
 -- Prueba de que funciona bien 
 trimP :: String -> String
@@ -68,7 +63,7 @@ sufijos :: [a] -> [[a]]
 sufijos l = map reverse (prefijos (reverse l))
 
 sublistas :: [a] -> [[a]]
-sublistas = recr(\x xs rec -> map (x:) (prefijos xs) ++ rec) [[]]
+sublistas = recr (\x xs rec -> map (x:) (prefijos xs) ++ rec) [[]]
 
 main :: IO ()
 main = do
