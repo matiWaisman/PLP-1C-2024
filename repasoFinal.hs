@@ -26,7 +26,7 @@ foldrRecr f = recr (\x _ rec -> f x rec)
 
 -- Definir recr en base a foldr
 recrFoldr :: (a -> [a] -> b -> b) -> b -> [a] -> b
-recrFoldr f z (x:xs) = f x xs (foldr (\ e rec l -> f e l (rec (tail l))) (const z) xs xs)
+recrFoldr f z l = foldr (\x rec -> \l -> f x l (rec (tail l))) (\_ -> z) l l 
 
 -- Prueba de que funciona bien 
 trimP :: String -> String
